@@ -47,6 +47,24 @@ def find_tool(name: str) -> str | None:
     return next((str(p) for p in candidates if p.is_file()), None)
 
 
+def ipc_endpoint(pid: int | None = None) -> tuple[str, str | None]:
+    """(path of mpv's IPC endpoint, directory made for it that has to be removed afterwards).
+
+    XDG_RUNTIME_DIR is a directory only the current user can use. Where there is none (a cron
+    job, an ssh session, some minimal setups) a private 0700 directory is made instead of
+    putting the socket straight into the shared temp directory: there the name is predictable
+    from the pid, so another local user could occupy it first or talk to mpv's IPC.
+    """
+    pid = os.getpid() if pid is None else pid
+    if IS_WINDOWS:
+        return rf"\\.\pipe\senada-mpv-{pid}", None
+    runtime = os.environ.get("XDG_RUNTIME_DIR")
+    if runtime and os.path.isdir(runtime) and os.access(runtime, os.W_OK | os.X_OK):
+        return os.path.join(runtime, f"senada-mpv-{pid}.sock"), None
+    private = tempfile.mkdtemp(prefix="senada-")  # mode 0700, short enough for a socket path
+    return os.path.join(private, f"senada-mpv-{pid}.sock"), private
+
+
 class AudioEngine(QObject):
     positionChanged = Signal(int)    # position in ms
     durationChanged = Signal(int)    # duration in ms
@@ -58,12 +76,8 @@ class AudioEngine(QObject):
     def __init__(self, parent=None):
         super().__init__(parent)
         CACHE_DIR.mkdir(parents=True, exist_ok=True)
-        if IS_WINDOWS:
-            self.ipc_path = rf"\\.\pipe\senada-mpv-{os.getpid()}"
-        else:
-            # short path: Unix sockets are limited to ~108 characters
-            runtime = os.environ.get("XDG_RUNTIME_DIR") or tempfile.gettempdir()
-            self.ipc_path = os.path.join(runtime, f"senada-mpv-{os.getpid()}.sock")
+        # short path: Unix sockets are limited to ~108 characters
+        self.ipc_path, self._private_dir = ipc_endpoint()
         self.proc = None
         self._buf = b""
         self._pending: list[bytes] = []
@@ -349,23 +363,33 @@ class AudioEngine(QObject):
 
     def quit(self):
         self._quitting = True
-        if self.proc is None:
-            return
-        try:
-            self._send_command(["quit"])
-            self.sock.waitForBytesWritten(200)
-            self.sock.disconnectFromServer()
-        except RuntimeError:  # Qt object already gone at interpreter exit
-            pass
-        try:
-            self.proc.wait(timeout=1)
-        except subprocess.TimeoutExpired:
-            self.proc.terminate()
-        except OSError:
-            pass
-        self.proc = None
+        if self.proc is not None:
+            try:
+                self._send_command(["quit"])
+                self.sock.waitForBytesWritten(200)
+                self.sock.disconnectFromServer()
+            except RuntimeError:  # Qt object already gone at interpreter exit
+                pass
+            try:
+                self.proc.wait(timeout=1)
+            except subprocess.TimeoutExpired:
+                self.proc.terminate()
+            except OSError:
+                pass
+            self.proc = None
+        self._remove_endpoint()
+
+    def _remove_endpoint(self):
+        """Remove the socket, and the directory made for it when there was no XDG_RUNTIME_DIR."""
         if not IS_WINDOWS and os.path.exists(self.ipc_path):
             try:
                 os.remove(self.ipc_path)
             except OSError:
                 pass
+        if not self._private_dir:
+            return
+        try:
+            os.rmdir(self._private_dir)
+        except OSError:
+            pass  # mpv left something behind: an empty leftover is worse than leaving it
+        self._private_dir = None
