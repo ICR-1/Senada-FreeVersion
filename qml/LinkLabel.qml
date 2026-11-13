@@ -6,6 +6,7 @@ Label {
     id: l
     signal clicked()
     elide: Text.ElideRight
+    textFormat: Text.PlainText   // artist/album names come from the network
     color: Theme.alpha(palette.windowText, hh.hovered ? 1 : 0.66)
     font.pixelSize: 13
     font.underline: hh.hovered

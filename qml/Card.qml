@@ -106,6 +106,7 @@ Item {
         Label {
             width: parent.width
             text: card.item.name || ""
+            textFormat: Text.PlainText
             elide: Text.ElideRight
             font.pixelSize: 14
             font.weight: Font.Bold
@@ -114,6 +115,7 @@ Item {
         Label {
             width: parent.width
             text: card.kind === "album" && card.item.year ? card.item.year + " • " + card.item.subtitle : (card.item.subtitle || "")
+            textFormat: Text.PlainText
             elide: Text.ElideRight
             color: Theme.dim
             font.pixelSize: 12

@@ -184,6 +184,7 @@ Item {
                             Layout.fillWidth: true
                             Layout.topMargin: 6
                             text: topCard.hit.name || ""
+                            textFormat: Text.PlainText
                             font.pixelSize: 26; font.weight: Font.Black
                             elide: Text.ElideRight
                         }

@@ -219,6 +219,7 @@ Rectangle {
                         Label {
                             Layout.fillWidth: true
                             text: it.modelData.name
+                            textFormat: Text.PlainText
                             elide: Text.ElideRight
                             font.pixelSize: 13
                             font.weight: it.current ? Font.DemiBold : Font.Normal

@@ -51,6 +51,7 @@ Item {
                 anchors.verticalCenter: parent.verticalCenter
                 width: row.width - 34
                 text: modelData.text || "♪"
+                textFormat: Text.PlainText  // lyrics come from a third party: show them as text, not markup
                 wrapMode: Text.WordWrap
                 font.pixelSize: lyrics.synced ? lv.textSize : Math.round(lv.textSize * 0.85)
                 font.weight: Font.Bold

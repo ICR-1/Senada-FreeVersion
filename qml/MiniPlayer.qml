@@ -127,6 +127,7 @@ Window {
                     Label {
                         Layout.fillWidth: true
                         text: island.hasTrack ? island.s.name : I18n.t("Nothing playing yet")
+                        textFormat: Text.PlainText
                         elide: Text.ElideRight
                         color: "#ffffff"
                         font.pixelSize: 13
@@ -136,6 +137,7 @@ Window {
                         Layout.fillWidth: true
                         visible: island.hasTrack
                         text: island.s.artists || ""
+                        textFormat: Text.PlainText
                         elide: Text.ElideRight
                         color: Qt.rgba(1, 1, 1, 0.6)
                         font.pixelSize: 11

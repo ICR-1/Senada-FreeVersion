@@ -102,6 +102,7 @@ Rectangle {
                     topPadding: 4
                     bottomPadding: 4
                     text: modelData.text || "♪"
+                    textFormat: Text.PlainText  // lyrics come from a third party: show them as text, not markup
                     wrapMode: Text.WordWrap
                     font.pixelSize: lyrics.synced ? 20 : 16
                     font.weight: lyrics.synced ? Font.Bold : Font.Normal

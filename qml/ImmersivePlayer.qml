@@ -378,6 +378,7 @@ Item {
                     Layout.fillWidth: true
                     horizontalAlignment: Text.AlignHCenter
                     text: im.s.album || ""
+                    textFormat: Text.PlainText
                     font.pixelSize: 12
                     color: Qt.rgba(1, 1, 1, 0.45)
                     elide: Text.ElideRight
@@ -631,7 +632,7 @@ Item {
                 ColumnLayout {
                     Layout.fillWidth: true
                     spacing: 2
-                    Label { Layout.fillWidth: true; text: im.s.name || ""; elide: Text.ElideRight; font.pixelSize: 16; font.weight: Font.Bold }
+                    Label { Layout.fillWidth: true; text: im.s.name || ""; textFormat: Text.PlainText; elide: Text.ElideRight; font.pixelSize: 16; font.weight: Font.Bold }
                     SeekBar { Layout.fillWidth: true }
                 }
                 TransportControls { size: 20 }

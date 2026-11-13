@@ -74,6 +74,7 @@ Item {
             Label {
                 Layout.fillWidth: true
                 text: h.loading && !h.info.name ? I18n.t("Loading…") : (h.info.name || "")
+                textFormat: Text.PlainText
                 font.pixelSize: Math.max(30, Math.min(56, h.width / 16))
                 font.weight: Font.Black
                 font.letterSpacing: -0.8

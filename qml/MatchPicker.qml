@@ -62,6 +62,7 @@ Popup {
                     text: (picker.track.name || "") + " — " + (picker.track.artists || "")
                           + (picker.track.durationMs ? "  (" + Theme.fmt(picker.track.durationMs) + ")" : "")
                     color: Theme.dim
+                    textFormat: Text.PlainText
                     font.pixelSize: 13
                     elide: Text.ElideRight
                 }
@@ -126,6 +127,7 @@ Popup {
                             Label {
                                 Layout.fillWidth: true
                                 text: row.modelData.name || ""
+                                textFormat: Text.PlainText
                                 elide: Text.ElideRight
                                 font.pixelSize: 14
                                 font.weight: Font.DemiBold
@@ -133,6 +135,7 @@ Popup {
                             Label {
                                 Layout.fillWidth: true
                                 elide: Text.ElideRight
+                                textFormat: Text.PlainText
                                 color: Theme.dim
                                 font.pixelSize: 12
                                 text: (row.modelData.artists || "") + "  •  " + picker.typeLabel(row.modelData.videoType)

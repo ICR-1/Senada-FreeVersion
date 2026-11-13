@@ -62,6 +62,7 @@ Rectangle {
                     width: Math.max(0, Math.min(implicitWidth, titleRow.width - 32))
                     anchors.verticalCenter: parent.verticalCenter
                     text: bar.hasTrack ? bar.s.name : I18n.t("Nothing playing yet")
+                    textFormat: Text.PlainText
                     elide: Text.ElideRight
                     font.pixelSize: 14
                     font.weight: Font.DemiBold

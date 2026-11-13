@@ -25,6 +25,7 @@ Rectangle {
         anchors.centerIn: parent
         width: Math.min(implicitWidth, t.width - 40)
         elide: Text.ElideRight
+        textFormat: Text.PlainText  // messages carry titles from the network
         font.pixelSize: 13
         font.weight: Font.DemiBold
         color: Theme.primaryText

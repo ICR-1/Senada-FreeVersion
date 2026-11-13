@@ -95,6 +95,7 @@ Item {
                         Label {
                             Layout.fillWidth: true
                             text: page.resume ? page.resume.name : I18n.t("Music with no account and no ads")
+                            textFormat: Text.PlainText
                             font.pixelSize: 17
                             font.weight: Font.Bold
                             elide: Text.ElideRight
@@ -103,6 +104,7 @@ Item {
                             Layout.fillWidth: true
                             text: page.resume ? page.resume.artists + (page.resume.album ? " • " + page.resume.album : "")
                                               : I18n.t("Search songs, open albums or import a playlist from Spotify or YouTube Music.")
+                            textFormat: Text.PlainText
                             color: Theme.dim
                             font.pixelSize: 13
                             elide: Text.ElideRight

@@ -166,6 +166,7 @@ Item {
                     width: Math.max(0, Math.min(implicitWidth, titleRow.width - badgeRow.width - (badgeRow.width > 0 ? 6 : 0)))
                     anchors.verticalCenter: parent.verticalCenter
                     text: row.track.name || ""
+                    textFormat: Text.PlainText
                     elide: Text.ElideRight
                     font.pixelSize: row.compact ? 13 : 14
                     font.weight: row.current ? Font.Bold : Font.Normal
