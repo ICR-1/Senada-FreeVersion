@@ -27,16 +27,46 @@ def _clean_track(track: dict) -> dict:
     return out
 
 
+def _stored_dicts(value) -> list[dict]:
+    """The dicts of a stored list: a damaged or hand-edited library.json may hold anything."""
+    return [item for item in value if isinstance(item, dict)] if isinstance(value, list) else []
+
+
+def _stored_tracks(value) -> list[dict]:
+    """Stored liked songs / history entries: only the ones that name a track."""
+    return [t for t in _stored_dicts(value) if isinstance(t.get("uri"), str) and t["uri"]]
+
+
+def _stored_playlists(value) -> list[dict]:
+    """Stored playlists, repaired: every playlist needs an id, a name and a track list."""
+    out = []
+    for p in _stored_dicts(value):
+        if not (isinstance(p.get("id"), str) and p["id"]):
+            continue  # without an id nothing can open it; playlists made by Senada always have one
+        name = p.get("name")
+        out.append({**p,
+                    "name": name if isinstance(name, str) and name.strip() else tr("New playlist"),
+                    "tracks": _stored_tracks(p.get("tracks"))})
+    return out
+
+
+def _stored_saved(value) -> list[dict]:
+    """Stored album/playlist bookmarks: they are looked up by kind and id."""
+    return [s for s in _stored_dicts(value)
+            if isinstance(s.get("kind"), str) and s["kind"] and isinstance(s.get("id"), str) and s["id"]]
+
+
 class LocalStore:
     def __init__(self, path=LIBRARY_FILE):
         self.path = path
         self._lock = threading.RLock()
         data = read_json(path)
+        # read defensively: half-written or hand-edited files must not stop Senada from starting
         self._data = {
-            "liked": data.get("liked") or [],
-            "playlists": data.get("playlists") or [],
-            "saved": data.get("saved") or [],
-            "history": data.get("history") or [],
+            "liked": _stored_tracks(data.get("liked")),
+            "playlists": _stored_playlists(data.get("playlists")),
+            "saved": _stored_saved(data.get("saved")),
+            "history": _stored_tracks(data.get("history")),
         }
 
     def _save(self):
