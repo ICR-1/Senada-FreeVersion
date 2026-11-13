@@ -224,7 +224,21 @@ else
     ok "PySide6 berhasil dipasang di $DIR/.venv."
 fi
 
-# Pastikan yt-dlp tersedia (fallback jika repo sistem belum punya versi terbaru)
+YTDLP_RELEASE="https://github.com/yt-dlp/yt-dlp/releases/latest/download"
+
+sha256_of() {
+    if command -v sha256sum &>/dev/null; then
+        sha256sum "$1" | awk '{print $1}'
+    elif command -v shasum &>/dev/null; then
+        shasum -a 256 "$1" | awk '{print $1}'
+    else
+        return 1
+    fi
+}
+
+# Pastikan yt-dlp tersedia (fallback jika repo sistem belum punya versi terbaru).
+# Unduhan diperiksa dulu terhadap SHA2-256SUMS rilis yang sama: binary ini nanti dijalankan
+# sebagai pengguna, jadi file yang salah atau terpotong tidak boleh sampai ke $BIN_DIR.
 ensure_ytdlp() {
     if command -v yt-dlp &>/dev/null || [ -x "$BIN_DIR/yt-dlp" ]; then
         ok "yt-dlp siap: $(command -v yt-dlp || echo "$BIN_DIR/yt-dlp")"
@@ -232,12 +246,38 @@ ensure_ytdlp() {
     fi
     info "Mengunduh binary yt-dlp mandiri ke $BIN_DIR/yt-dlp..."
     mkdir -p "$BIN_DIR"
-    curl -sSL https://github.com/yt-dlp/yt-dlp/releases/latest/download/yt-dlp -o "$BIN_DIR/yt-dlp"
-    chmod +x "$BIN_DIR/yt-dlp"
-    ok "yt-dlp mandiri berhasil disiapkan."
+    local part="$BIN_DIR/.yt-dlp.part"
+    local sums="$BIN_DIR/.yt-dlp.sums"
+    rm -f "$part" "$sums"
+    if ! curl -fsSL "$YTDLP_RELEASE/yt-dlp" -o "$part"; then
+        rm -f "$part"
+        err "Gagal mengunduh yt-dlp. Pasang 'yt-dlp' lewat paket distro lalu jalankan ulang."
+        return 1
+    fi
+    local want="" got=""
+    curl -fsSL "$YTDLP_RELEASE/SHA2-256SUMS" -o "$sums" 2>/dev/null || true
+    if [ -s "$sums" ]; then
+        want="$(awk '$2 == "yt-dlp" {print $1; exit}' "$sums")"
+    fi
+    rm -f "$sums"
+    got="$(sha256_of "$part" || true)"
+    if [ -z "$want" ] || [ -z "$got" ]; then
+        rm -f "$part"
+        err "Checksum yt-dlp tidak tersedia, unduhan dibatalkan. Pasang 'yt-dlp' lewat paket distro."
+        return 1
+    fi
+    if [ "$want" != "$got" ]; then
+        rm -f "$part"
+        err "Checksum yt-dlp tidak cocok (diharapkan $want, didapat $got), unduhan dibatalkan."
+        return 1
+    fi
+    chmod +x "$part"
+    mv -f "$part" "$BIN_DIR/yt-dlp"
+    ok "yt-dlp mandiri berhasil disiapkan (checksum cocok)."
 }
 
-ensure_ytdlp
+# Senada tetap bisa dipasang tanpa yt-dlp; pemutaran lagu butuh itu, jadi beri tahu saja.
+ensure_ytdlp || warn "yt-dlp belum siap: pemutaran lagu akan gagal sampai 'yt-dlp' terpasang."
 
 # Buat launcher, ikon, dan entri desktop
 mkdir -p "$BIN_DIR" "$APP_DIR_DESKTOP" "$ICON_DIR"
